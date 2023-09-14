@@ -52,8 +52,9 @@ pub fn on_master_branch(repo: &Repository) -> bool {
 ///
 /// # Example
 /// ```
-/// let a = split_tag_semver("abcd-1.2.3-efgh");
-/// assert!(a == ("abcd", 1, 2, 3, "efgh"));
+/// let tag = "v1.2.3-alpha";
+/// let result = split_tag_semver(tag);
+/// assert_eq!(result, Some(("v".to_owned(), 1, 2, 3, "-alpha".to_owned())));
 /// ```
 pub fn split_tag_semver(tag: &str) -> Option<(String, u32, u32, u32, String)> {
     // Safety: Regex is verified to be valid
@@ -164,5 +165,87 @@ pub fn semver_bump(major: &mut u32, minor: &mut u32, patch: &mut u32, bump: &Typ
             *patch = 0;
         }
         Type::Patch => *patch += 1,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_semver_bump_major() {
+        let mut major = 1;
+        let mut minor = 2;
+        let mut patch = 3;
+        let bump = Type::Major;
+
+        semver_bump(&mut major, &mut minor, &mut patch, &bump);
+
+        assert_eq!(major, 2);
+        assert_eq!(minor, 0);
+        assert_eq!(patch, 0);
+    }
+
+    #[test]
+    fn test_semver_bump_minor() {
+        let mut major = 1;
+        let mut minor = 2;
+        let mut patch = 3;
+        let bump = Type::Minor;
+
+        semver_bump(&mut major, &mut minor, &mut patch, &bump);
+
+        assert_eq!(major, 1);
+        assert_eq!(minor, 3);
+        assert_eq!(patch, 0);
+    }
+
+    #[test]
+    fn test_semver_bump_patch() {
+        let mut major = 1;
+        let mut minor = 2;
+        let mut patch = 3;
+        let bump = Type::Patch;
+
+        semver_bump(&mut major, &mut minor, &mut patch, &bump);
+
+        assert_eq!(major, 1);
+        assert_eq!(minor, 2);
+        assert_eq!(patch, 4);
+    }
+
+    #[test]
+    fn test_split_tag_semver_valid() {
+        let tag = "v1.2.3-alpha";
+        let result = split_tag_semver(tag);
+
+        assert_eq!(result, Some(("v".to_owned(), 1, 2, 3, "-alpha".to_owned())));
+    }
+
+    #[test]
+    fn test_split_tag_semver_invalid() {
+        // Invalid tag format
+        let tag = "invalid-tag";
+        let result = split_tag_semver(tag);
+
+        assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_split_tag_semver_no_prefix() {
+        // No prefix
+        let tag = "1.2.3-beta";
+        let result = split_tag_semver(tag);
+
+        assert_eq!(result, Some(("".to_owned(), 1, 2, 3, "-beta".to_owned())));
+    }
+
+    #[test]
+    fn test_split_tag_semver_no_suffix() {
+        // No prefix
+        let tag = "v1.2.3";
+        let result = split_tag_semver(tag);
+
+        assert_eq!(result, Some(("v".to_owned(), 1, 2, 3, "".to_owned())));
     }
 }
