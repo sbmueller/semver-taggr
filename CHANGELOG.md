@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.1.0] - 2023-09-14
 
 ### Documentation
 
@@ -15,4 +15,12 @@
 ### Refactor
 
 - Extract functions into own file functions.rs
+
+### Testing
+
+- Add unit tests for library functions
+
+### Ci
+
+- Add github action to build and test
 
